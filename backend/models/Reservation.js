@@ -15,6 +15,12 @@ const ReservationSchema = new mongoose.Schema({
         type: Date,
         required: [true, "Please specify the reservation date and time"],
     },
+    status: {
+        type: String,
+        enum: ['booked', 'completed', 'cancelled'],
+        default: 'booked',
+        required: true,
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Reservation', ReservationSchema);
