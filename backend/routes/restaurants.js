@@ -51,9 +51,9 @@ const { addReservation, getReservations } = require('../controllers/reservations
  *                 - id: "64b7f9e8e4b0f2a9d1234567"
  *                   user: "AnyUserId"
  *                   restaurant: "AnyRestaurantId"
- *                   dateTime: "2025-11-02T19:00:00Z"
- *                   createdAt: "2025-11-02T19:00:00Z"
- *                   updatedAt: "2025-11-02T19:00:00Z"
+ *                   dateTime: "2025-11-02T19:00:00+07:00"
+ *                   createdAt: "2025-11-02T19:00:00+07:00"
+ *                   updatedAt: "2025-11-02T19:00:00+07:00"
  *       401:
  *         description: Unauthorized
  *       404:
@@ -92,7 +92,7 @@ const { addReservation, getReservations } = require('../controllers/reservations
  *               dateTime:
  *                 type: string
  *                 format: date-time
- *                 example: "2025-11-02T19:00:00Z"
+ *                 example: "2025-11-02T19:00:00+07:00"
  *     responses:
  *       201:
  *         description: Reservation created
@@ -104,9 +104,9 @@ const { addReservation, getReservations } = require('../controllers/reservations
  *                 id: "64b7f9e8e4b0f2a9d1234567"
  *                 user: "AnyUserId"
  *                 restaurant: "AnyRestaurantId"
- *                 dateTime: "2025-11-02T19:00:00Z"
- *                 createdAt: "2025-11-02T19:00:00Z"
- *                 updatedAt: "2025-11-02T19:00:00Z"
+ *                 dateTime: "2025-11-02T19:00:00+07:00"
+ *                 createdAt: "2025-11-02T19:00:00+07:00"
+ *                 updatedAt: "2025-11-02T19:00:00+07:00"
  *       400:
  *         description: Bad request (e.g., user has 3 reservations already)
  *         content:
@@ -124,9 +124,5 @@ const { addReservation, getReservations } = require('../controllers/reservations
 router.route('/:restaurantId/reservations')
   .get(protect, getReservations)
   .post(protect, authorize('admin', 'user'), addReservation);
-
-// Mount nested reservations router so routes like
-// /restaurants/:restaurantId/reservations/:id are handled.
-router.use('/:restaurantId/reservations', reservationRouter);
 
 module.exports = router;

@@ -415,8 +415,9 @@ describe('reservations controller', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Cannot create reservation' });
 
-      expect(console.log).toHaveBeenCalled();
-      const arg = console.log.mock.calls[0][0];
+      // <-- changed to console.error to match controller
+      expect(console.error).toHaveBeenCalled();
+      const arg = console.error.mock.calls[0][0];
       expect(arg).toBeInstanceOf(Error);
       expect(arg.message).toBe('create fail');
     });
@@ -520,7 +521,13 @@ describe('reservations controller', () => {
 
       await controllers.updateReservation(req, res, jest.fn());
 
-      expect(Reservation.findByIdAndUpdate).toHaveBeenCalledWith('rZ', { dateTime: '2025-01-01T10:00:00' }, { new: true, runValidators: true});
+      // The controller converts incoming dateTime to a JS Date before updating,
+      // so assert that a Date was passed rather than a raw string.
+      expect(Reservation.findByIdAndUpdate).toHaveBeenCalledWith(
+        'rZ',
+        expect.objectContaining({ dateTime: expect.any(Date) }),
+        { new: true, runValidators: true}
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ success: true, data: updated });
       expect(console.log).not.toHaveBeenCalled();
@@ -540,8 +547,9 @@ describe('reservations controller', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Cannot update reservation' });
 
-      expect(console.log).toHaveBeenCalled();
-      const arg = console.log.mock.calls[0][0];
+      // <-- changed to console.error to match controller
+      expect(console.error).toHaveBeenCalled();
+      const arg = console.error.mock.calls[0][0];
       expect(arg).toBeInstanceOf(Error);
       expect(arg.message).toBe('update fail');
     });

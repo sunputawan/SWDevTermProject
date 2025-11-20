@@ -2,7 +2,6 @@ const express = require('express');
 const {
   getReservations,
   getReservation,
-  addReservation,
   updateReservation,
   deleteReservation,
   markCompleted,
@@ -16,6 +15,49 @@ const { protect, authorize } = require('../middleware/auth');
  * tags:
  *   - name: Reservations
  *     description: Reservation management operations
+ *
+ * components:
+ *   schemas:
+ *     Reservation:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "64b7f9e8e4b0f2a9d1234567"
+ *         user:
+ *           type: string
+ *           description: User ObjectId (ref User)
+ *           example: "64b7eaaa..."
+ *         restaurant:
+ *           type: string
+ *           description: Restaurant ObjectId (ref Restaurant)
+ *           example: "64b7ebbb..."
+ *         dateTime:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-11-02T19:00:00+07:00"
+ *         status:
+ *           type: string
+ *           enum: [booked, completed, cancelled]
+ *           example: booked
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: false
+ *         message:
+ *           type: string
+ *       example:
+ *         success: false
+ *         message: "No reservation with the id of 64b7f9e8e4b0f2a9d1234567"
  */
 
 /**
@@ -77,15 +119,15 @@ const { protect, authorize } = require('../middleware/auth');
  *                       dateTime:
  *                         type: string
  *                         format: date-time
- *                         example: "2025-11-02T19:00:00Z"
+ *                         example: "2025-11-02T19:00:00+07:00"
  *                       createdAt:
  *                         type: string
  *                         format: date-time
- *                         example: "2025-11-02T19:00:00Z"
+ *                         example: "2025-11-02T19:00:00+07:00"
  *                       updatedAt:
  *                         type: string
  *                         format: date-time
- *                         example: "2025-11-02T19:00:00Z"
+ *                         example: "2025-11-02T19:00:00+07:00"
  *       401:
  *         description: Unauthorized (missing or invalid token)
  *         content:
@@ -130,9 +172,9 @@ router.route('/').get(protect, getReservations);
  *                 id: "64b7f9e8e4b0f2a9d1234567"
  *                 user: "AnyUserId"
  *                 restaurant: "AnyRestaurantId"
- *                 dateTime: "2025-11-02T19:00:00Z"
- *                 createdAt: "2025-11-02T19:00:00Z"
- *                 updatedAt: "2025-11-02T19:00:00Z"
+ *                 dateTime: "2025-11-02T19:00:00+07:00"
+ *                 createdAt: "2025-11-02T19:00:00+07:00"
+ *                 updatedAt: "2025-11-02T19:00:00+07:00"
  *       404:
  *         description: Reservation not found
  *         content:
@@ -175,7 +217,7 @@ router.route('/').get(protect, getReservations);
  *               dateTime:
  *                 type: string
  *                 format: date-time
- *                 example: "2025-11-02T19:00:00Z"
+ *                 example: "2025-11-02T19:00:00+07:00"
  *     responses:
  *       200:
  *         description: Updated reservation returned
@@ -187,7 +229,7 @@ router.route('/').get(protect, getReservations);
  *                 id: "64b7f9e8e4b0f2a9d1234567"
  *                 user: "AnyUserId"
  *                 restaurant: "AnyRestaurantId"
- *                 dateTime: "2025-11-02T19:00:00Z"
+ *                 dateTime: "2025-11-02T19:00:00+07:00"
  *       400:
  *         description: Bad request (validation)
  *         content:

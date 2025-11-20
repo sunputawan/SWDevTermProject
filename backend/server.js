@@ -33,7 +33,6 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(helmet());
 app.use(xss());
-app.use(cookieParser());
 app.use(hpp());
 app.use(cors({
     origin: [
