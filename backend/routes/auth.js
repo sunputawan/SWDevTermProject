@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getMe } = require('../controllers/auth');
+const { register, login, getMe, logout } = require('../controllers/auth');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -169,6 +169,27 @@ router.post('/register', register);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/login', login);
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Logout user (clear cookie)
+ *     responses:
+ *       200:
+ *         description: Logged out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ */
+router.post('/logout', logout);
 
 /**
  * @swagger

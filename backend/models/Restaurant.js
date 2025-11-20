@@ -41,6 +41,16 @@ const RestaurantSchema = new mongoose.Schema({
     image: {
         type: String,
         default: 'no-photo.jpg',
+    },
+
+    // Aggregates for fast read
+    averageRating: {
+        type: Number,
+        default: 0,
+    },
+    reviewCount: {
+        type: Number,
+        default: 0,
     }
 }, {
     toJSON: {virtuals: true},
@@ -53,7 +63,14 @@ RestaurantSchema.virtual('reservations', {
     localField: '_id',
     foreignField: 'restaurant',
     justOne: false
-})
+});
+
+RestaurantSchema.virtual('reviews', {
+  ref: 'Review',
+  localField: '_id',
+  foreignField: 'restaurant',
+  justOne: false
+});
 
 
 module.exports = mongoose.model('Restaurant', RestaurantSchema);

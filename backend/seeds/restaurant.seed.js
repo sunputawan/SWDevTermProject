@@ -1,5 +1,14 @@
 // seeds.js
-require('dotenv').config({ path: './config/config.env' });
+const fs = require('fs');
+const dotenv = require('dotenv');
+// Load env based on NODE_ENV, fallback to config.env
+const envName = process.env.NODE_ENV || 'development';
+const envPath = `./config/config.${envName}.env`;
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else {
+  dotenv.config({ path: './config/config.env' });
+}
 const mongoose = require('mongoose');
 const Restaurant = require('../models/Restaurant');
 const connectDB = require('../config/db');

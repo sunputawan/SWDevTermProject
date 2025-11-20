@@ -1,9 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const reservationRouter = require('./reservations');
 const { protect, authorize } = require('../middleware/auth');
 const { addReservation, getReservations } = require('../controllers/reservations');
+const {
+  getRestaurants,
+  getRestaurant,
+  createRestaurant,
+  updateRestaurant,
+  deleteRestaurant,
+} = require('../controllers/restaurants');
 
 /**
  * @swagger
@@ -122,7 +128,20 @@ const { addReservation, getReservations } = require('../controllers/reservations
  *         description: Server error
  */
 router.route('/:restaurantId/reservations')
-  .get(protect, getReservations)
-  .post(protect, authorize('admin', 'user'), addReservation);
+    .get(protect, getReservations)
+    .post(protect, authorize('admin', 'user'), addReservation);
+
+
+// Public routes
+router.route('/').get(getRestaurants);
+router.route('/:id').get(getRestaurant);
+
+// Admin-only (protected) routes
+router.route('/')
+  .post(protect, authorize('admin'), createRestaurant);
+
+router.route('/:id')
+  .put(protect, authorize('admin'), updateRestaurant)
+  .delete(protect, authorize('admin'), deleteRestaurant);
 
 module.exports = router;

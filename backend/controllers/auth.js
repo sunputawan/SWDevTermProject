@@ -7,6 +7,14 @@ exports.register = async (req,res,next) => {
     try {
         const {name, email,tel, password, role} = req.body;
 
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is already registered'
+            });
+        }
+
         //Create user
         const user = await User.create({
             name,
@@ -97,4 +105,19 @@ exports.getMe = async (req,res,next) => {
         success: true,
         data: user,
     })
+}
+
+// @desc    Log User Out
+// @route   POST /api/v1/auth/logout
+// @access  Private
+exports.logout = async (req,res,next) => {
+    res.cookie('token', 'none', {
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true,
+    });
+
+    res.status(200).json({
+        success: true,
+        data: {}
+    });
 }

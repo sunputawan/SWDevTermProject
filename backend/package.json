@@ -4,9 +4,11 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "seeds": "node ./seeds/restaurant.seed.js",
-    "test": "jest --coverage"
+    "dev": "NODE_ENV=development nodemon server.js",
+    "seeds": "NODE_ENV=development node ./seeds/restaurant.seed.js",
+    "jest": "NODE_ENV=development jest --verbose",
+    "seeds:test": "NODE_ENV=test node ./seeds/restaurant.seed.js",
+    "newman:test": "bash ./scripts/run_newman_test.sh"
   },
   "keywords": [],
   "author": "",

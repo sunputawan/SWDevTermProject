@@ -11,8 +11,15 @@ const cors = require('cors');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
 
-// load env
-dotenv.config({path: './config/config.env'});
+// load env based on NODE_ENV (falls back to config.env)
+const fs = require('fs');
+const envName = process.env.NODE_ENV || 'development';
+const envPath = `./config/config.${envName}.env`;
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+} else {
+    dotenv.config({ path: './config/config.env' });
+}
 
 // connect to DB
 connectDB();
