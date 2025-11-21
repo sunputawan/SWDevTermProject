@@ -120,7 +120,6 @@ const { protect, authorize } = require('../middleware/auth');
  *               success: false
  *               error: "Server error"
  */
-router.get('/', getReviews);
 
 /**
  * @swagger
@@ -191,7 +190,7 @@ router.get('/', getReviews);
  *       500:
  *         description: Server error
  */
-router.post('/', protect, createReview);
+
 
 /**
  * @swagger
@@ -235,7 +234,7 @@ router.post('/', protect, createReview);
  *               success: false
  *               error: "Invalid review ID"
  */
-router.get('/:id', getReview);
+
 
 /**
  * @swagger
@@ -299,7 +298,7 @@ router.get('/:id', getReview);
  *       500:
  *         description: Server error
  */
-router.put('/:id', protect, authorize('admin', 'user'), updateReview);
+
 
 /**
  * @swagger
@@ -335,6 +334,10 @@ router.put('/:id', protect, authorize('admin', 'user'), updateReview);
  *       500:
  *         description: Server error
  */
+router.get('/', getReviews);
+router.get('/:id', getReview);
+router.post('/', protect, authorize('admin', 'user'), createReview);
+router.put('/:id', protect, authorize('admin', 'user'), updateReview);
 router.delete('/:id', protect, authorize('admin', 'user'), deleteReview);
 
 module.exports = router;

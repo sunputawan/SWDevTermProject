@@ -69,7 +69,7 @@ const swaggerOptions = {
         info: {
             title: "API Library",
             version: "1.0.0",
-            description: "Rental Girlfriend Backend App V2",
+            description: "Restaurant Reservation Backend App",
         },
         servers: [
             {

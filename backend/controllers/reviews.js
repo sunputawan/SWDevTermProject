@@ -173,7 +173,6 @@ exports.updateReview = async (req, res) => {
         if (populated) updated = populated;
       } catch (e) {
         // if populate re-fetch fails (e.g. in tests with plain mocks), use updatedRaw
-        // but still log the minor issue
         console.error(e);
       }
     }

@@ -134,7 +134,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/register', register);
+
 
 /**
  * @swagger
@@ -168,7 +168,6 @@ router.post('/register', register);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/login', login);
 
 /**
  * @swagger
@@ -189,7 +188,6 @@ router.post('/login', login);
  *                   type: boolean
  *                   example: true
  */
-router.post('/logout', logout);
 
 /**
  * @swagger
@@ -213,6 +211,10 @@ router.post('/logout', logout);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+
+router.post('/register', register);
+router.post('/login', login);
+router.post('/logout', logout);
 router.get('/me', protect, getMe);
 
 module.exports = router;

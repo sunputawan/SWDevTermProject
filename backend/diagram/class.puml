@@ -1,0 +1,89 @@
+' Source ZIP: /mnt/data/project.zip
+
+@startuml
+left to right direction
+
+package "Restaurant Reservation Service" {
+
+    ' ============= APPLICATION ==================
+    class "<<Application>>\nRestaurant Reservation Service" as AppService {}
+
+    ' ============= RESOURCES ====================
+    class "<<Resource>>\nRestaurants" as ResourceRestaurants {
+        <<GET>> +getRestaurants(): RestaurantModel
+        <<POST>> +createRestaurant(): RestaurantModel
+    }
+
+    class "<<Resource>>\nRestaurant" as ResourceRestaurant {
+        <<GET>> +getRestaurant(): RestaurantModel
+        <<PUT>> +updateRestaurant(): RestaurantModel
+        <<DELETE>> +deleteRestaurant(): void
+    }
+
+    class "<<Resource>>\nReservations" as ResourceReservations {
+        <<GET>> +getReservations(): ReservationModel
+        <<POST>> +addReservation(): ReservationModel
+    }
+
+    class "<<Resource>>\nReservation" as ResourceReservation {
+        <<GET>> +getReservation(): ReservationModel
+        <<PUT>> +updateReservation(): ReservationModel
+        <<DELETE>> +deleteReservation(): void
+    }
+
+    class "<<Resource>>\nAuth" as ResourceAuth {
+        <<POST>> +register(): UserModel
+        <<POST>> +login(): UserModel
+        <<POST>> +logout(): void
+    }
+
+    ' ============= REPRESENTATIONS ================
+    class "<<Representation>>\nUser" as RepresentationUser {
+        -name
+        -telephone
+        -email
+        -password
+        -role
+    }
+
+    class "<<Representation>>\nRestaurant" as RepresentationRestaurant {
+        -name
+        -address
+        -district
+        -province
+        -tel
+        -openTime
+        -closeTime
+        -timezone
+    }
+
+    class "<<Representation>>\nReservation" as RepresentationReservation {
+        -user
+        -restaurant
+        -dateTime
+        -status
+    }
+
+}
+
+' ============= PATH CONNECTIONS ==================
+
+AppService ..> ResourceRestaurants: "/restaurants\n<<Path>>"
+ResourceRestaurants ..> ResourceRestaurant: "/{restaurantId}\n<<Path>>"
+
+AppService ..> ResourceReservations: "/reservations\n<<Path>>"
+ResourceReservations ..> ResourceReservation: "/{reservationId}\n<<Path>>"
+
+AppService ..> ResourceAuth: "/auth\n<<Path>>"
+
+' ============ REPRESENTATION USAGE ===============
+
+ResourceRestaurant ..> RepresentationRestaurant: "<<use>>"
+ResourceRestaurants ..> RepresentationRestaurant: "<<use>>"
+
+ResourceReservation ..> RepresentationReservation: "<<use>>"
+ResourceReservations ..> RepresentationReservation: "<<use>>"
+
+ResourceAuth ..> RepresentationUser: "<<use>>"
+
+@enduml

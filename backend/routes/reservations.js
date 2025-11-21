@@ -143,7 +143,7 @@ const { protect, authorize } = require('../middleware/auth');
  *               success: false
  *               message: "Server error"
  */
-router.route('/').get(protect, getReservations);
+
 
 /**
  * @swagger
@@ -277,16 +277,13 @@ router.route('/').get(protect, getReservations);
  *       500:
  *         description: Server error
  */
-router.route('/:id')
-  .get(protect, getReservation)
-  .put(protect, authorize('admin', 'user'), updateReservation)
-  .delete(protect, authorize('admin', 'user'), deleteReservation);
+
 
 
 /**
  * @swagger
  * /reservations/{id}/complete:
- *   post:
+ *   patch:
  *     tags:
  *       - Reservations
  *     summary: Mark reservation as completed (attended)
@@ -326,7 +323,14 @@ router.route('/:id')
  *       500:
  *         description: Server error
  */
-router.post('/:id/complete', protect, authorize('admin','user'), markCompleted);
+
+
+router.route('/').get(protect, getReservations);
+router.route('/:id')
+  .get(protect, getReservation)
+  .put(protect, authorize('admin', 'user'), updateReservation)
+  .delete(protect, authorize('admin', 'user'), deleteReservation);
+router.patch('/:id/complete', protect, authorize('admin','user'), markCompleted);
 
 
 module.exports = router;

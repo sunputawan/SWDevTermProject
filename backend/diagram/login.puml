@@ -1,0 +1,29 @@
+@startuml Login (POST)
+
+header Restaurant Reservation Sequence Diagram
+footer Page %page% of %lastpage%
+title "Login (POST)"
+
+participant "Client" as client
+participant "<<javaScript>>\n:server" as server
+participant "<<router>>\n:auth" as routerAuth
+participant "<<controllers>>\n:auth" as controllersAuth
+participant "<<model>>\n:User" as modelUser
+database "<<MongoDB>>\n:users" as UsersDatabase
+
+client->server ++:req.post('/api/v1/auth/login')
+server->routerAuth ++:app.use('/api/v1/auth', auth)
+routerAuth -> controllersAuth ++:login({email,password})
+controllersAuth -> modelUser ++ : findOne({email})
+modelUser -> UsersDatabase ++ : findOne({email})
+UsersDatabase --> modelUser --: userRecord
+controllersAuth <-- modelUser --:userRecord
+controllersAuth -> controllersAuth: verifyPassword(password, userRecord.hash)
+alt password ok
+    controllersAuth -> controllersAuth: generateToken(userId)
+    controllersAuth -> client --:response 200 OK (accessToken)
+else invalid
+    controllersAuth -> client --:response 401 Unauthorized
+end
+
+@enduml

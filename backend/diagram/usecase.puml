@@ -1,0 +1,59 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+actor "Unregistered User" as Guest
+actor "Registered User" as User
+actor Admin
+
+rectangle "Reservation System" {
+  usecase UC_Register as "Register (name, phone, email, password)"
+  usecase UC_Login as "Login (email, password)"
+  usecase UC_Logout as "Logout"
+  usecase UC_ViewRestaurants as "View Restaurant List"
+  usecase UC_ViewRestaurantInfo as "View Restaurant Info\n(name, address, phone, open-close)"
+  usecase UC_Reserve as "Reserve Table(s)"
+  usecase UC_ViewReservation as "View My Reservation(s)"
+  usecase UC_EditReservation as "Edit My Reservation"
+  usecase UC_DeleteReservation as "Delete My Reservation"
+  usecase UC_AdminView as "View Any Reservation"
+  usecase UC_AdminEdit as "Edit Any Reservation"
+  usecase UC_AdminDelete as "Delete Any Reservation"
+}
+
+Guest --> UC_Register
+Guest --> UC_Login
+
+User --> UC_Login
+User --> UC_Logout
+User --> UC_ViewRestaurants
+User --> UC_ViewRestaurantInfo
+User --> UC_Reserve
+User --> UC_ViewReservation
+User --> UC_EditReservation
+User --> UC_DeleteReservation
+
+Admin --> UC_AdminView
+Admin --> UC_AdminEdit
+Admin --> UC_AdminDelete
+
+' Relationships and includes
+UC_Reserve .> UC_ViewRestaurants : <<include>>
+UC_Reserve .> UC_ViewRestaurantInfo : <<include>>
+UC_ViewRestaurantInfo .. UC_ViewRestaurants : <<include>>
+
+' Admin uses same reservation actions but for any user
+UC_AdminView .> UC_ViewReservation : <<extends>>
+UC_AdminEdit .> UC_EditReservation : <<extends>>
+UC_AdminDelete .> UC_DeleteReservation : <<extends>>
+
+note right of UC_Reserve
+  - Registered users may reserve up to 3 tables.
+  - Reservation requires: date, preferred restaurant.
+end note
+
+note left of UC_Register
+  After successful registration the
+  user becomes a Registered User.
+end note
+
+@enduml

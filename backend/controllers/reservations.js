@@ -159,6 +159,14 @@ exports.addReservation = async (req, res, next) => {
   try {
     req.body.restaurant = req.params.restaurantId;
 
+    if (!req.body.user) {
+      return res.status(400).json({ success: false, message: "user is required in request body" });
+    }
+
+    if (req.user.role !== 'admin' && req.body.user !== req.user.id) {
+      return res.status(401).json({ success: false, message: `User ${req.user.id} is not authorized to create this reservation` });
+    }
+
     const restaurant = await Restaurant.findById(req.params.restaurantId);
     if (!restaurant) {
       return res.status(404).json({ success: false, message: `No restaurant with the id of ${req.params.restaurantId}` });
@@ -176,10 +184,6 @@ exports.addReservation = async (req, res, next) => {
         success: false,
         message: `Reservation time is outside restaurant working hours (${restaurant.openTime} - ${restaurant.closeTime})`
       });
-    }
-
-    if (!req.body.user) {
-      return res.status(400).json({ success: false, message: "user is required in request body" });
     }
 
     const existedReservations = await Reservation.find({ user: req.body.user });

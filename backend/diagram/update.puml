@@ -1,0 +1,63 @@
+@startuml Update Reservation (PUT)
+
+header Restaurant Reservation Sequence Diagram
+footer Page %page% of %lastpage%
+title "Update Reservation (PUT)"
+
+participant "Client" as client
+participant "<<javaScript>>\n:server" as server
+participant "<<router>>\n:reservations" as routerReservations
+participant "<<controllers>>\n:reservations" as controllersReservations
+participant "<<model>>\n:Reservation" as modelReservation
+participant "<<model>>\n:Restaurant" as modelRestaurant
+database "<<MongoDB>>\n:reservations" as ReservationsDatabase
+database "<<MongoDB>>\n:restaurants" as RestaurantsDatabase
+
+client->server ++:req.put('/api/v1/reservations/{id}') + token + body
+server->routerReservations ++:app.use('/api/v1/reservations', reservations)
+routerReservations -> controllersReservations ++:updateReservation(id, body, user)
+
+controllersReservations -> ReservationsDatabase ++: findById(id)
+ReservationsDatabase --> controllersReservations --:reservation
+alt not found
+    controllersReservations -> client --:response 404 No reservation
+else found
+    controllersReservations -> controllersReservations: check ownership (reservation.user == user.id) or role == 'admin'
+    alt not owner and not admin
+        controllersReservations -> client --:response 401 Not authorized
+    else authorized
+        alt if body.dateTime present
+            controllersReservations -> modelRestaurant ++: findById(reservation.restaurant)
+            modelRestaurant -> RestaurantsDatabase ++: findOne({_id: reservation.restaurant})
+            RestaurantsDatabase --> modelRestaurant --:restaurant
+            controllersReservations <-- modelRestaurant --:restaurant
+            controllersReservations -> controllersReservations: isWithinWorkingHours(body.dateTime, restaurant.openTime, restaurant.closeTime)
+            alt outside working hours
+                controllersReservations -> client --:response 400 outside working hours
+            else inside working hours
+                controllersReservations -> controllersReservations: parseIncomingToJSDate(body.dateTime)
+                controllersReservations -> controllersReservations: set body.dateTime = jsDate
+            end
+        end
+        alt if body.status present
+            controllersReservations -> controllersReservations: validate status in ['booked','completed','cancelled']
+            alt invalid status
+                controllersReservations -> client --:response 400 Invalid status
+            else status valid
+                alt if status == 'completed' and user.role != 'admin'
+                    controllersReservations -> controllersReservations: determine targetMs (body.dateTime or reservation.dateTime)
+                    controllersReservations -> controllersReservations: if nowMs < targetMs
+                    alt now < target
+                        controllersReservations -> client --:response 400 Cannot mark as completed before time
+                    else allowed
+                    end
+                end
+            end
+        end
+        controllersReservations -> ReservationsDatabase ++: findByIdAndUpdate(id, body, {new:true, runValidators:true})
+        ReservationsDatabase --> controllersReservations --:updatedReservation
+        controllersReservations -> client --:response 200 OK (updatedReservation)
+    end
+end
+
+@enduml

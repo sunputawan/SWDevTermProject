@@ -1,0 +1,37 @@
+@startuml Get One Reservation (GET)
+
+header Restaurant Reservation Sequence Diagram
+footer Page %page% of %lastpage%
+title "Get One Reservation (GET)"
+
+participant "Client" as client
+participant "<<javaScript>>\n:server" as server
+participant "<<router>>\n:reservations" as routerReservations
+participant "<<controllers>>\n:reservations" as controllersReservations
+participant "<<model>>\n:Reservation" as modelReservation
+database "<<MongoDB>>\n:reservations" as ReservationsDatabase
+participant "<<model>>\n:Restaurant" as modelRestaurant
+database "<<MongoDB>>\n:restaurants" as RestaurantsDatabase
+
+client->server ++:req.get('/api/v1/reservations/{id}') + token
+server->routerReservations ++:app.use('/api/v1/reservations', reservations)
+routerReservations -> controllersReservations ++:getReservation(id, user)
+
+controllersReservations -> ReservationsDatabase ++: findById(id)
+ReservationsDatabase --> controllersReservations --:reservation
+alt not found
+    controllersReservations -> client --:response 404 No reservation
+else found
+    controllersReservations -> controllersReservations: check ownership (reservation.user == user.id) or role == 'admin'
+    controllersReservations -> modelRestaurant ++: populate(restaurant fields)
+    modelRestaurant -> RestaurantsDatabase ++: findOne({_id: reservation.restaurant})
+    RestaurantsDatabase --> modelRestaurant --:restaurant
+    controllersReservations <-- modelRestaurant --:reservation+restaurant
+    alt owner or admin
+        controllersReservations -> client --:response 200 OK (reservation)
+    else not allowed
+        controllersReservations -> client --:response 401 Unauthorized
+    end
+end
+
+@enduml

@@ -1,0 +1,33 @@
+@startuml Get All Reservations (GET)
+
+header Restaurant Reservation Sequence Diagram
+footer Page %page% of %lastpage%
+title "Get All Reservations (GET)"
+
+participant "Client" as client
+participant "<<javaScript>>\n:server" as server
+participant "<<router>>\n:reservations" as routerReservations
+participant "<<controllers>>\n:reservations" as controllersReservations
+participant "<<model>>\n:Reservation" as modelReservation
+database "<<MongoDB>>\n:reservations" as ReservationsDatabase
+participant "<<model>>\n:Restaurant" as modelRestaurant
+database "<<MongoDB>>\n:restaurants" as RestaurantsDatabase
+
+client->server ++:req.get('/api/v1/reservations' or '/api/v1/restaurants/:id/reservations') + token
+server->routerReservations ++:app.use('/api/v1/reservations', reservations)
+routerReservations -> controllersReservations ++:getReservations(params, user)
+
+controllersReservations -> controllersReservations: verify token & user.role
+alt user.role != 'admin'
+    controllersReservations -> ReservationsDatabase ++: find({ user: user.id } or { user: user.id, restaurant: params.restaurantId })
+else admin
+    controllersReservations -> ReservationsDatabase ++: find({} or { restaurant: params.restaurantId })
+end
+ReservationsDatabase --> controllersReservations --:reservations[]
+controllersReservations -> modelRestaurant ++: populate(restaurants for each reservation)
+modelRestaurant -> RestaurantsDatabase ++: findMany(...)
+RestaurantsDatabase --> modelRestaurant --:restaurants
+controllersReservations <-- modelRestaurant --:reservations with restaurant info
+controllersReservations -> client --:response 200 OK (count, data)
+
+@enduml

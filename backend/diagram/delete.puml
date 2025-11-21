@@ -1,0 +1,52 @@
+@startuml Manage Reservation (DELETE)
+
+header Restaurant Reservation Sequence Diagram
+footer Page %page% of %lastpage%
+title "Manage Reservation (DELETE)"
+
+participant "Client" as client
+participant "<<javascript>>\n:server" as server
+participant "<<router>>\n:reservations" as routerReservations
+participant "<<middleware>>\n:auth" as authMiddleware
+participant "<<controllers>>\n:reservations" as controllersReservations
+participant "<<model>>\n:Reservation" as modelReservation
+database "<<MongoDB>>\n:reservations" as ReservationsDatabase
+
+client-> server ++:req.delete('/api/v1/reservations/{id}') + token
+server->routerReservations ++:app.use('/api/v1/reservations', reservations)
+routerReservations -> authMiddleware ++ : authenticate(req)
+alt not authenticated
+  authMiddleware -> routerReservations -- : 401 Not Authenticated
+  routerReservations -> client -- : 401 { success: false, message: 'Not authenticated' }
+else authenticated
+  authMiddleware --> routerReservations -- : req.user (id, role)
+  routerReservations -> controllersReservations ++ : deleteReservation(req.params.id)
+  controllersReservations -> controllersReservations ++ : validate id (isValidObjectId)
+  alt invalid id
+    controllersReservations -> client -- : 400 { success: false, message: 'Invalid reservation id' }
+  else valid id
+    controllersReservations -> modelReservation ++ : findById(reservationId)
+    modelReservation -> ReservationsDatabase ++ : findOne({_id: reservationId})
+    ReservationsDatabase --> modelReservation -- : reservation (or null)
+    controllersReservations <-- modelReservation -- : reservation
+    alt reservation not found
+      controllersReservations -> client -- : 404 { success: false, message: 'No reservation with the id of ...' }
+    else reservation found
+      controllersReservations -> controllersReservations ++ : check ownership (reservation.user === req.user.id) OR req.user.role === 'admin'
+      alt not authorized
+        controllersReservations -> client -- : 403 { success: false, message: 'User not authorized' }
+      else authorized
+        controllersReservations -> modelReservation ++ : reservation.deleteOne()
+        modelReservation -> ReservationsDatabase ++ : deleteOne({_id: reservationId})
+        ReservationsDatabase --> modelReservation -- : delete result
+        controllersReservations <-- modelReservation -- : delete result
+        controllersReservations -> client -- : 200 { success: true, data: <deletedReservation> }
+      end
+    end
+  end
+end
+
+note over controllersReservations : catch (err) -> 500 Internal Server Error
+controllersReservations -> client -- : 500 { success: false, message: 'Cannot delete reservation' }
+
+@enduml

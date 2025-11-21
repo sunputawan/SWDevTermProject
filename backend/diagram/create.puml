@@ -1,0 +1,71 @@
+@startuml Create Reservation (POST)
+
+header Sample VacQ Sequence Diagram
+footer Page %page% of %lastpage%
+title "Create Reservation (POST)"
+
+participant "Client" as client
+participant "<<javaScript>>\n:server" as server
+participant "<<router>>\n:reservations" as routerReservations
+participant "<<controllers>>\n:reservations" as controllersReservations
+participant "<<model>>\n:Restaurant" as modelRestaurant
+participant "<<model>>\n:Reservation" as modelReservation
+database "<<MongoDB>>\n:restaurants" as RestaurantsDatabase
+database "<<MongoDB>>\n:reservations" as ReservationsDatabase
+
+client->server ++: req.post('/api/v1/restaurants/:restaurantId/reservations') + token + body
+server->routerReservations ++: app.use('/api/v1/reservations', reservations)
+routerReservations -> controllersReservations ++: addReservation(params, body, user)
+
+controllersReservations -> controllersReservations: set body.restaurant = params.restaurantId
+
+controllersReservations -> controllersReservations: check body.user present
+alt user missing
+    controllersReservations -> client --: response 400 "user is required in request body"
+else user present
+    controllersReservations -> controllersReservations: authorization check
+    alt req.user.role != 'admin' and body.user != req.user.id
+        controllersReservations -> client --: response 401 "not authorized to create this reservation"
+    else authorized (admin or same user)
+        controllersReservations -> modelRestaurant ++: findById(restaurantId)
+        modelRestaurant -> RestaurantsDatabase ++: findOne({_id: restaurantId})
+        RestaurantsDatabase --> modelRestaurant --: restaurant
+        controllersReservations <-- modelRestaurant --: restaurant
+
+        alt restaurant not found
+            controllersReservations -> client --: response 404 "No restaurant with the id"
+        else restaurant found
+            controllersReservations -> controllersReservations: check body.dateTime present
+            alt dateTime missing
+                controllersReservations -> client --: response 400 "dateTime is required"
+            else dateTime present
+                controllersReservations -> controllersReservations: tz = restaurant.timezone || 'Asia/Bangkok'
+                controllersReservations -> controllersReservations: ok = isWithinWorkingHours(body.dateTime, restaurant.openTime, restaurant.closeTime, tz)
+                alt not ok (outside hours)
+                    controllersReservations -> client --: response 400 "outside restaurant working hours"
+                else within hours
+                    controllersReservations -> ReservationsDatabase ++: find({ user: body.user })
+                    ReservationsDatabase --> controllersReservations --: existedReservations[]
+                    alt existedReservations.length >= 3 and req.user.role != 'admin'
+                        controllersReservations -> client --: response 400 "user has already made 3 reservations"
+                    else under limit or admin
+                        controllersReservations -> controllersReservations: jsDate = parseIncomingToJSDate(body.dateTime, tz)
+                        alt jsDate invalid
+                            controllersReservations -> client --: response 400 "Invalid dateTime"
+                        else jsDate valid
+                            controllersReservations -> controllersReservations: body.dateTime = jsDate
+                            controllersReservations -> controllersReservations: body.status = 'booked'
+                            controllersReservations -> modelReservation ++: create(body)
+                            modelReservation -> ReservationsDatabase ++: insertOne(...)
+                            ReservationsDatabase --> modelReservation --: reservation
+                            controllersReservations <-- modelReservation --: reservation
+                            controllersReservations -> client --: response 201 Created (reservation)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+@enduml
